@@ -1,0 +1,29 @@
+{
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "burns-legal-chatgpt-authless",
+	"main": "src/burns-legal-chatgpt.ts",
+	"account_id": "1d5ebf460e5ef491d9ca5f7c93c1fc24",
+	"compatibility_date": "2025-03-10",
+	"compatibility_flags": ["nodejs_compat"],
+	"migrations": [
+		{
+			"new_sqlite_classes": ["BurnsLegalChatGPT"],
+			"tag": "v1"
+		}
+	],
+	"durable_objects": {
+		"bindings": [
+			{
+				"class_name": "BurnsLegalChatGPT",
+				"name": "MCP_OBJECT"
+			}
+		]
+	},
+	"vars": {
+		"SUPABASE_URL": "https://nqkzqcsqfvpquticvwmk.supabase.co",
+		"MCP_SERVER_NAME": "burns-legal-chatgpt-authless"
+	},
+	"observability": {
+		"enabled": true
+	}
+}
