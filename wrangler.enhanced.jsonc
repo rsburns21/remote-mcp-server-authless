@@ -1,0 +1,34 @@
+{
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "burns-legal-enhanced-authless",
+	"main": "src/burns-legal-enhanced-complete.ts",
+	"account_id": "1d5ebf460e5ef491d9ca5f7c93c1fc24",
+	"compatibility_date": "2025-03-10",
+	"compatibility_flags": ["nodejs_compat"],
+	"migrations": [
+		{
+			"new_sqlite_classes": ["BurnsLegalEnhancedMCP"],
+			"tag": "v1"
+		},
+		{
+			"delete_classes": ["BurnsLegalEnhancedMCP"],
+			"new_sqlite_classes": ["BurnsLegalEnhancedComplete"],
+			"tag": "v2"
+		}
+	],
+	"durable_objects": {
+		"bindings": [
+			{
+				"class_name": "BurnsLegalEnhancedComplete",
+				"name": "MCP_OBJECT"
+			}
+		]
+	},
+	"vars": {
+		"SUPABASE_URL": "https://nqkzqcsqfvpquticvwmk.supabase.co",
+		"MCP_SERVER_NAME": "burns-legal-enhanced-authless"
+	},
+	"observability": {
+		"enabled": true
+	}
+}
