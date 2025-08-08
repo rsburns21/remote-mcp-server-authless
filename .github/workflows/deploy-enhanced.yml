@@ -1,0 +1,40 @@
+name: Deploy Enhanced Worker
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'src/burns-legal-enhanced-complete.ts'
+      - 'wrangler.enhanced.jsonc'
+      - '.github/workflows/deploy-enhanced.yml'
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    name: Deploy Enhanced Worker
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Build worker
+        run: npm run build:enhanced
+        
+      - name: Deploy to Cloudflare
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          config: wrangler.enhanced.jsonc
+          command: deploy
+          secrets: |
+            SUPABASE_SERVICE_ROLE_KEY
+        env:
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}

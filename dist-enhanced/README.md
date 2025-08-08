@@ -1,0 +1,1 @@
+This folder contains the built output assets for the worker "burns-legal-enhanced-authless" generated at 2025-08-08T02:20:48.165Z.
