@@ -5,8 +5,10 @@ compatibility_flags = ["nodejs_compat"]
 
 [vars]
 SUPABASE_URL = "https://nqkzqcsqfvpquticvwmk.supabase.co"
-SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5xa3pxY3NxZnZwcXV0aWN2d21rIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzA3NDI0OTMsImV4cCI6MjA0NjMxODQ5M30.LQklkf3vX-dkkrN8gEcwHsQl7KKFYV_tifhEJtJrUX8"
 MCP_SERVER_NAME = "burns-legal-mcp"
+
+# Secret to be added in Cloudflare Dashboard > Worker > Settings > Variables > Encrypt:
+# SUPABASE_SERVICE_ROLE_KEY = [add as encrypted secret in dashboard]
 
 [[durable_objects.bindings]]
 name = "MCP_OBJECT"

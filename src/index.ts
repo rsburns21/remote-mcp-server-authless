@@ -3,8 +3,8 @@ import { z } from "zod";
 
 interface Env {
   SUPABASE_URL: string;
-  SUPABASE_SERVICE_ROLE_KEY?: string;
-  SUPABASE_ANON_KEY?: string;
+  SUPABASE_SERVICE_ROLE_KEY: string;
+  MCP_SERVER_NAME?: string;
   OPENAI_API_KEY?: string;
 }
 
@@ -388,7 +388,7 @@ export class BurnsLegalMCP {
   async searchLegalDocuments({ query, limit = 10 }) {
     const env = this.env as Env;
     const supabaseUrl = env.SUPABASE_URL || "https://nqkzqcsqfvpquticvwmk.supabase.co";
-    const supabaseKey = env.SUPABASE_SERVICE_ROLE_KEY || env.SUPABASE_ANON_KEY;
+    const supabaseKey = env.SUPABASE_SERVICE_ROLE_KEY;
     
     if (!supabaseKey) {
       return {
@@ -464,7 +464,7 @@ export class BurnsLegalMCP {
   async vectorSearchEmbeddings({ query, limit = 20, threshold = 0.7 }) {
     const env = this.env as Env;
     const supabaseUrl = env.SUPABASE_URL || "https://nqkzqcsqfvpquticvwmk.supabase.co";
-    const supabaseKey = env.SUPABASE_SERVICE_ROLE_KEY || env.SUPABASE_ANON_KEY;
+    const supabaseKey = env.SUPABASE_SERVICE_ROLE_KEY;
     
     try {
       const response = await fetch(
@@ -511,7 +511,7 @@ export class BurnsLegalMCP {
   async fetchExhibit({ id }) {
     const env = this.env as Env;
     const supabaseUrl = env.SUPABASE_URL || "https://nqkzqcsqfvpquticvwmk.supabase.co";
-    const supabaseKey = env.SUPABASE_SERVICE_ROLE_KEY || env.SUPABASE_ANON_KEY;
+    const supabaseKey = env.SUPABASE_SERVICE_ROLE_KEY;
     
     try {
       const response = await fetch(
@@ -548,7 +548,7 @@ export class BurnsLegalMCP {
   async fetchClaim({ claim_id, include = [] }) {
     const env = this.env as Env;
     const supabaseUrl = env.SUPABASE_URL || "https://nqkzqcsqfvpquticvwmk.supabase.co";
-    const supabaseKey = env.SUPABASE_SERVICE_ROLE_KEY || env.SUPABASE_ANON_KEY;
+    const supabaseKey = env.SUPABASE_SERVICE_ROLE_KEY;
     
     try {
       const response = await fetch(
@@ -603,7 +603,7 @@ export class BurnsLegalMCP {
   async getFactsByClaim({ claim_id, fact_type, includeMetadata = false }) {
     const env = this.env as Env;
     const supabaseUrl = env.SUPABASE_URL || "https://nqkzqcsqfvpquticvwmk.supabase.co";
-    const supabaseKey = env.SUPABASE_SERVICE_ROLE_KEY || env.SUPABASE_ANON_KEY;
+    const supabaseKey = env.SUPABASE_SERVICE_ROLE_KEY;
     
     try {
       let query = `${supabaseUrl}/rest/v1/facts?claim_id=eq.${claim_id}`;
@@ -644,7 +644,7 @@ export class BurnsLegalMCP {
   async analyzeClaimRisk({ claim_id }) {
     const env = this.env as Env;
     const supabaseUrl = env.SUPABASE_URL || "https://nqkzqcsqfvpquticvwmk.supabase.co";
-    const supabaseKey = env.SUPABASE_SERVICE_ROLE_KEY || env.SUPABASE_ANON_KEY;
+    const supabaseKey = env.SUPABASE_SERVICE_ROLE_KEY;
     
     try {
       const response = await fetch(
@@ -723,7 +723,7 @@ export default {
       // Test Supabase connection
       let supabaseTest = { status: "not_tested", tables: null };
       const supabaseUrl = env.SUPABASE_URL || "https://nqkzqcsqfvpquticvwmk.supabase.co";
-      const supabaseKey = env.SUPABASE_SERVICE_ROLE_KEY || env.SUPABASE_ANON_KEY;
+      const supabaseKey = env.SUPABASE_SERVICE_ROLE_KEY;
       
       if (supabaseKey) {
         try {
@@ -776,9 +776,9 @@ export default {
           test: "/test"
         },
         environment: {
-          supabase_configured: !!(env.SUPABASE_URL && (env.SUPABASE_SERVICE_ROLE_KEY || env.SUPABASE_ANON_KEY)),
+          supabase_configured: !!(env.SUPABASE_URL && env.SUPABASE_SERVICE_ROLE_KEY),
           has_service_key: !!env.SUPABASE_SERVICE_ROLE_KEY,
-          has_anon_key: !!env.SUPABASE_ANON_KEY,
+          mcp_server_name: env.MCP_SERVER_NAME,
           supabase_url: supabaseUrl
         },
         supabase_test: supabaseTest
@@ -793,7 +793,7 @@ export default {
     // Test endpoint for debugging
     if (url.pathname === "/test") {
       const supabaseUrl = env.SUPABASE_URL || "https://nqkzqcsqfvpquticvwmk.supabase.co";
-      const supabaseKey = env.SUPABASE_SERVICE_ROLE_KEY || env.SUPABASE_ANON_KEY;
+      const supabaseKey = env.SUPABASE_SERVICE_ROLE_KEY;
       
       const tests = {};
       
