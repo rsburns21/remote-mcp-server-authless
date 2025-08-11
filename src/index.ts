@@ -689,6 +689,10 @@ export class BurnsLegalMCP extends McpAgent {
 // Also export as MyMCP for backwards compatibility
 export { BurnsLegalMCP as MyMCP };
 
+// Export old class names for migration compatibility
+export { BurnsLegalMCP as BurnsLegalEnhancedComplete };
+export { BurnsLegalMCP as BurnsLegalEnhancedMCP };
+
 export default {
   async fetch(request: Request, env: Env, ctx: ExecutionContext) {
     const url = new URL(request.url);

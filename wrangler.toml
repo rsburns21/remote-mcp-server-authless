@@ -13,3 +13,16 @@ class_name = "MyMCP"
 [[migrations]]
 tag = "v1"
 new_sqlite_classes = ["MyMCP"]
+
+[[migrations]]
+tag = "v2"
+renamed_classes = [
+  { from = "BurnsLegalEnhancedComplete", to = "MyMCP" }
+]
+
+[[migrations]]
+tag = "v3"
+renamed_classes = [
+  { from = "BurnsLegalEnhancedMCP", to = "MyMCP" },
+  { from = "BurnsLegalMCP", to = "MyMCP" }
+]
