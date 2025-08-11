@@ -39,22 +39,23 @@ jobs:
         
       - name: Deploy to Cloudflare
         uses: cloudflare/wrangler-action@v3
+        env:
+          CLOUDFLARE_API_KEY: ${{ secrets.CLOUDFLARE_API_KEY }}
+          CLOUDFLARE_EMAIL: ${{ secrets.CLOUDFLARE_EMAIL }}
         with:
-          apiKey: ${{ secrets.CLOUDFLARE_API_KEY }}
-          email: ${{ secrets.CLOUDFLARE_EMAIL }}
           command: deploy --config wrangler.enhanced.toml
       
       - name: Set Worker Secrets
         if: success()
         uses: cloudflare/wrangler-action@v3
+        env:
+          CLOUDFLARE_API_KEY: ${{ secrets.CLOUDFLARE_API_KEY }}
+          CLOUDFLARE_EMAIL: ${{ secrets.CLOUDFLARE_EMAIL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
         with:
-          apiKey: ${{ secrets.CLOUDFLARE_API_KEY }}
-          email: ${{ secrets.CLOUDFLARE_EMAIL }}
           command: secret put SUPABASE_SERVICE_ROLE_KEY --config wrangler.enhanced.toml
           secrets: |
             SUPABASE_SERVICE_ROLE_KEY
-        env:
-          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           
       - name: Create deployment record
         if: success()
