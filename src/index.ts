@@ -686,9 +686,6 @@ export class BurnsLegalMCP extends McpAgent {
   }
 }
 
-// Export the Durable Object class for Cloudflare
-export { BurnsLegalMCP };
-
 // Also export as MyMCP for backwards compatibility
 export { BurnsLegalMCP as MyMCP };
 
