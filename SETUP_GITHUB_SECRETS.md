@@ -8,15 +8,15 @@ To enable automated deployments via GitHub Actions, you need to add the followin
 
 This token is required for GitHub Actions to deploy to Cloudflare Workers.
 
-**Your existing token from .env.txt:**
-- Token: `1x84RKObue-epgFn2Mu4qlC4tvyRLElOBYYMrH0h`
+**Working token from .env.txt (line 97):**
+- Token: `OO8p-G-ZdQXBj9AmeXIwLYEJPeEDn8Uhc_x0y8KH`
 
-**How to add to GitHub:**
+**How to add/update in GitHub:**
 1. Go to https://github.com/rsburns21/remote-mcp-server-authless/settings/secrets/actions
-2. Click "New repository secret"
+2. Click "New repository secret" (or update existing)
 3. Name: `CLOUDFLARE_API_TOKEN`
-4. Value: `1x84RKObue-epgFn2Mu4qlC4tvyRLElOBYYMrH0h`
-5. Click "Add secret"
+4. Value: `OO8p-G-ZdQXBj9AmeXIwLYEJPeEDn8Uhc_x0y8KH`
+5. Click "Add secret" or "Update secret"
 
 ### 2. SUPABASE_SERVICE_ROLE_KEY
 
