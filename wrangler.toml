@@ -6,20 +6,8 @@ compatibility_flags = ["nodejs_compat"]
 [vars]
 SUPABASE_URL = "https://nqkzqcsqfvpquticvwmk.supabase.co"
 
-# Secret configured in Cloudflare dashboard
-# SUPABASE_SERVICE_ROLE_KEY
-
 [[durable_objects.bindings]]
 name = "MCP_OBJECT"
 class_name = "BurnsLegalEnhancedMCP"
 
-[[migrations]]
-tag = "v1"
-new_sqlite_classes = ["BurnsLegalEnhancedMCP"]
-
-[[migrations]]
-tag = "v2"
-renamed_classes = [
-  { from = "BurnsLegalMCP", to = "BurnsLegalEnhancedMCP" },
-  { from = "BurnsLegalEnhancedComplete", to = "BurnsLegalEnhancedMCP" }
-]
+# No migration needed - backwards compatibility provided in code
