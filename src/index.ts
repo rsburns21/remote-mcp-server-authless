@@ -1,4 +1,3 @@
-import { McpAgent } from "agents/mcp";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 
@@ -9,7 +8,8 @@ interface Env {
 }
 
 // Burns Legal MCP Server with Vector Search
-export class BurnsLegalMCP extends McpAgent {
+export class BurnsLegalMCP {
+  env: any;
   server = new McpServer({
     name: "Burns Legal Search",
     version: "2.0.0",
