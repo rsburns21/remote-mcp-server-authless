@@ -370,6 +370,12 @@ export class BurnsLegalMCP extends McpAgent {
   }
 }
 
+// Export the Durable Object class for Cloudflare
+export { BurnsLegalMCP };
+
+// Also export as MyMCP for backwards compatibility
+export { BurnsLegalMCP as MyMCP };
+
 export default {
   async fetch(request: Request, env: Env, ctx: ExecutionContext) {
     const url = new URL(request.url);
