@@ -1,5 +1,5 @@
 name = "burns-legal-enhanced-authless"
-main = "src/burns-legal-enhanced-full.ts"
+main = "src/burns-legal-enhanced.ts"
 compatibility_date = "2024-12-16"
 compatibility_flags = ["nodejs_compat"]
 

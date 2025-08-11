@@ -120,6 +120,9 @@ export class BurnsLegalEnhancedMCP {
   }
 }
 
+// Alias for backwards compatibility with existing Durable Objects
+export class BurnsLegalEnhancedComplete extends BurnsLegalEnhancedMCP {}
+
 // ---------------- MCP core ----------------
 
 async function handleRpc(body: any, env: Env, sessionId?: string): Promise<Response> {
