@@ -730,7 +730,9 @@ export default {
           health: "/health"
         },
         environment: {
-          supabase_configured: !!(env.SUPABASE_URL && env.SUPABASE_SERVICE_ROLE_KEY)
+          supabase_configured: !!(env.SUPABASE_URL && (env.SUPABASE_SERVICE_ROLE_KEY || env.SUPABASE_ANON_KEY)),
+          has_service_key: !!env.SUPABASE_SERVICE_ROLE_KEY,
+          has_anon_key: !!env.SUPABASE_ANON_KEY
         }
       }), {
         headers: {
