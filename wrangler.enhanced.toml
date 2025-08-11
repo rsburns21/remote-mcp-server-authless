@@ -10,6 +10,4 @@ SUPABASE_URL = "https://nqkzqcsqfvpquticvwmk.supabase.co"
 name = "MCP_OBJECT"
 class_name = "BurnsLegalEnhancedMCP"
 
-[[migrations]]
-tag = "v1"
-new_sqlite_classes = ["BurnsLegalEnhancedMCP"]
+# No migration needed - backwards compatibility provided in code

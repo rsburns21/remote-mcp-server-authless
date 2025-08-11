@@ -14,6 +14,9 @@ export class BurnsLegalEnhancedMCP extends McpAgent {
 	}
 }
 
+// Alias for backwards compatibility with existing Durable Objects
+export class BurnsLegalEnhancedComplete extends BurnsLegalEnhancedMCP {}
+
 // Burns Legal Enhanced - Complete implementation with all 16 tools
 export class BurnsLegalEnhanced extends McpAgent {
 	server = new McpServer({
