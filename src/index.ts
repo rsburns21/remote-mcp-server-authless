@@ -754,10 +754,51 @@ export default {
     // MCP endpoint - handle JSON-RPC
     if (url.pathname === "/mcp") {
       try {
-        const body = await request.json();
+        let body;
+        try {
+          body = await request.json();
+        } catch (e) {
+          return new Response(JSON.stringify({
+            jsonrpc: "2.0",
+            error: {
+              code: -32700,
+              message: "Parse error - invalid JSON"
+            }
+          }), {
+            status: 400,
+            headers: {
+              "Content-Type": "application/json",
+              ...corsHeaders
+            }
+          });
+        }
+        
         const agent = new BurnsLegalMCP();
         agent.env = env;
         await agent.init();
+        
+        // Handle initialize method
+        if (body.method === "initialize") {
+          return new Response(JSON.stringify({
+            jsonrpc: "2.0",
+            id: body.id,
+            result: {
+              protocolVersion: "2024-11-05",
+              capabilities: {
+                tools: {}
+              },
+              serverInfo: {
+                name: "burns-legal-mcp",
+                version: "1.0.0"
+              }
+            }
+          }), {
+            headers: {
+              "Content-Type": "application/json",
+              ...corsHeaders
+            }
+          });
+        }
         
         // Handle JSON-RPC request
         if (body.method === "tools/call") {
@@ -815,12 +856,82 @@ export default {
         // Handle tools/list
         if (body.method === "tools/list") {
           const tools = [
-            "search_legal_documents",
-            "vector_search_embeddings", 
-            "fetch_exhibit",
-            "fetch_claim",
-            "get_facts_by_claim",
-            "analyze_claim_risk"
+            {
+              name: "search_legal_documents",
+              description: "Search legal documents using semantic search",
+              inputSchema: {
+                type: "object",
+                properties: {
+                  query: { type: "string", description: "Search query" },
+                  limit: { type: "number", description: "Maximum results", default: 10 }
+                },
+                required: ["query"]
+              }
+            },
+            {
+              name: "vector_search_embeddings",
+              description: "Search using vector embeddings",
+              inputSchema: {
+                type: "object",
+                properties: {
+                  query: { type: "string", description: "Natural language query" },
+                  limit: { type: "number", description: "Maximum results", default: 20 },
+                  threshold: { type: "number", description: "Similarity threshold", default: 0.7 }
+                },
+                required: ["query"]
+              }
+            },
+            {
+              name: "fetch_exhibit",
+              description: "Fetch exhibit details by ID",
+              inputSchema: {
+                type: "object",
+                properties: {
+                  id: { type: "string", description: "Exhibit ID to fetch" }
+                },
+                required: ["id"]
+              }
+            },
+            {
+              name: "fetch_claim",
+              description: "Fetch claim details",
+              inputSchema: {
+                type: "object",
+                properties: {
+                  claim_id: { type: "string", description: "Claim ID" },
+                  include: { 
+                    type: "array", 
+                    items: { type: "string" },
+                    description: "Related data to include"
+                  }
+                },
+                required: ["claim_id"]
+              }
+            },
+            {
+              name: "get_facts_by_claim",
+              description: "Get facts associated with a claim",
+              inputSchema: {
+                type: "object",
+                properties: {
+                  claim_id: { type: "string", description: "Claim ID" },
+                  fact_type: { type: "string", description: "Filter by fact type" },
+                  includeMetadata: { type: "boolean", description: "Include metadata", default: false }
+                },
+                required: ["claim_id"]
+              }
+            },
+            {
+              name: "analyze_claim_risk",
+              description: "Analyze risk factors for a claim",
+              inputSchema: {
+                type: "object",
+                properties: {
+                  claim_id: { type: "string", description: "Claim ID to analyze" }
+                },
+                required: ["claim_id"]
+              }
+            }
           ];
           return new Response(JSON.stringify({
             jsonrpc: "2.0",
@@ -848,14 +959,15 @@ export default {
           }
         });
       } catch (error) {
+        console.error("MCP endpoint error:", error);
         return new Response(JSON.stringify({
           jsonrpc: "2.0",
           error: {
-            code: -32700,
-            message: "Parse error"
+            code: -32603,
+            message: `Internal error: ${error.message || error}`
           }
         }), {
-          status: 400,
+          status: 500,
           headers: {
             "Content-Type": "application/json",
             ...corsHeaders
