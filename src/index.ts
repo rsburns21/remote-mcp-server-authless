@@ -14,16 +14,12 @@ export class BurnsLegalMCP extends McpAgent {
     name: "Burns Legal Search",
     version: "2.0.0",
   });
+  
+  toolHandlers = new Map();
 
   async init() {
     // Core search with vector embeddings
-    this.server.tool(
-      "search_legal_documents", 
-      {
-        query: z.string().describe("Search query"),
-        limit: z.number().default(10).describe("Maximum results")
-      },
-      async ({ query, limit }) => {
+    const searchHandler = async ({ query, limit }) => {
         const env = this.env as Env;
         const supabaseUrl = env.SUPABASE_URL || "https://nqkzqcsqfvpquticvwmk.supabase.co";
         const supabaseKey = env.SUPABASE_SERVICE_ROLE_KEY;
@@ -419,14 +415,104 @@ export default {
       });
     }
 
-    // SSE endpoint
+    // SSE endpoint (not implemented yet)
     if (url.pathname === "/sse" || url.pathname === "/sse/message") {
-      return BurnsLegalMCP.serveSSE("/sse").fetch(request, env, ctx);
+      return new Response(JSON.stringify({
+        error: "SSE endpoint not yet implemented"
+      }), {
+        status: 501,
+        headers: {
+          "Content-Type": "application/json",
+          ...corsHeaders
+        }
+      });
     }
 
-    // MCP endpoint
+    // MCP endpoint - handle JSON-RPC
     if (url.pathname === "/mcp") {
-      return BurnsLegalMCP.serve("/mcp").fetch(request, env, ctx);
+      try {
+        const body = await request.json();
+        const agent = new BurnsLegalMCP();
+        agent.env = env;
+        await agent.init();
+        
+        // Handle JSON-RPC request
+        if (body.method === "tools/call") {
+          const { name, arguments: args } = body.params;
+          const tool = agent.server.toolHandlers.get(name);
+          
+          if (tool) {
+            const result = await tool(args);
+            return new Response(JSON.stringify({
+              jsonrpc: "2.0",
+              id: body.id,
+              result
+            }), {
+              headers: {
+                "Content-Type": "application/json",
+                ...corsHeaders
+              }
+            });
+          } else {
+            return new Response(JSON.stringify({
+              jsonrpc: "2.0",
+              id: body.id,
+              error: {
+                code: -32601,
+                message: `Tool not found: ${name}`
+              }
+            }), {
+              headers: {
+                "Content-Type": "application/json",
+                ...corsHeaders
+              }
+            });
+          }
+        }
+        
+        // Handle tools/list
+        if (body.method === "tools/list") {
+          const tools = Array.from(agent.server.toolHandlers.keys());
+          return new Response(JSON.stringify({
+            jsonrpc: "2.0",
+            id: body.id,
+            result: { tools }
+          }), {
+            headers: {
+              "Content-Type": "application/json",
+              ...corsHeaders
+            }
+          });
+        }
+        
+        return new Response(JSON.stringify({
+          jsonrpc: "2.0",
+          id: body.id,
+          error: {
+            code: -32601,
+            message: `Method not found: ${body.method}`
+          }
+        }), {
+          headers: {
+            "Content-Type": "application/json",
+            ...corsHeaders
+          }
+        });
+      } catch (error) {
+        return new Response(JSON.stringify({
+          jsonrpc: "2.0",
+          error: {
+            code: -32700,
+            message: "Parse error"
+          }
+        }), {
+          status: 400,
+          headers: {
+            "Content-Type": "application/json",
+            ...corsHeaders
+          }
+        });
+      }
     }
 
     // Default info page

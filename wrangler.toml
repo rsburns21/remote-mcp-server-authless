@@ -1,5 +1,5 @@
 name = "burns-legal-enhanced-authless"
-main = "src/burns-legal-enhanced.ts"
+main = "src/index.ts"
 compatibility_date = "2024-12-16"
 compatibility_flags = ["nodejs_compat"]
 
@@ -11,15 +11,8 @@ SUPABASE_URL = "https://nqkzqcsqfvpquticvwmk.supabase.co"
 
 [[durable_objects.bindings]]
 name = "MCP_OBJECT"
-class_name = "BurnsLegalEnhancedMCP"
+class_name = "BurnsLegalMCP"
 
 [[migrations]]
 tag = "v1"
-new_sqlite_classes = ["BurnsLegalEnhancedMCP"]
-
-[[migrations]]
-tag = "v2"
-renamed_classes = [
-  { from = "BurnsLegalMCP", to = "BurnsLegalEnhancedMCP" },
-  { from = "BurnsLegalEnhancedComplete", to = "BurnsLegalEnhancedMCP" }
-]
+new_sqlite_classes = ["BurnsLegalMCP"]
