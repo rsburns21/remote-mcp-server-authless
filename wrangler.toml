@@ -8,9 +8,8 @@ SUPABASE_URL = "https://nqkzqcsqfvpquticvwmk.supabase.co"
 
 [[durable_objects.bindings]]
 name = "MCP_OBJECT"
-class_name = "BurnsLegalMCP"
+class_name = "MyMCP"
 
-# Export the Durable Object class
 [[migrations]]
 tag = "v1"
-new_sqlite_classes = ["BurnsLegalMCP"]
+new_sqlite_classes = ["MyMCP"]

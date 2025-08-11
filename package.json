@@ -1,6 +1,6 @@
 {
-	"name": "burns-legal-enhanced-mcp",
-	"version": "1.0.0",
+	"name": "burns-legal-enhanced-authless",
+	"version": "0.0.0",
 	"private": true,
 	"scripts": {
 		"deploy": "wrangler deploy",
