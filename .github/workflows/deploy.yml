@@ -42,8 +42,11 @@ jobs:
         env:
           CLOUDFLARE_API_KEY: ${{ secrets.CLOUDFLARE_API_KEY }}
           CLOUDFLARE_EMAIL: ${{ secrets.CLOUDFLARE_EMAIL }}
+          CLOUDFLARE_WORKER_NAME: burns-legal-enhanced-authless
         with:
-          command: deploy --config wrangler.enhanced.toml
+          wranglerVersion: '3.80.5'
+          apiToken: false
+          command: deploy --config wrangler.enhanced.toml --name burns-legal-enhanced-authless
       
       - name: Set Worker Secrets
         if: success()
@@ -53,6 +56,8 @@ jobs:
           CLOUDFLARE_EMAIL: ${{ secrets.CLOUDFLARE_EMAIL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
         with:
+          wranglerVersion: '3.80.5'
+          apiToken: false
           command: secret put SUPABASE_SERVICE_ROLE_KEY --config wrangler.enhanced.toml
           secrets: |
             SUPABASE_SERVICE_ROLE_KEY
