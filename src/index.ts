@@ -74,6 +74,9 @@ export class BurnsLegalMCP {
                 })
               }]
             };
+          } else {
+            console.error("Semantic search failed:", response.status, await response.text());
+            throw new Error("Semantic search not available");
           }
         } catch (error) {
           // Fallback to basic search
@@ -755,9 +758,7 @@ export default {
       // Handle SSE messages
       ctx.waitUntil((async () => {
         try {
-          const agent = new BurnsLegalMCP();
-          agent.env = env;
-          await agent.init();
+          // SSE connection established
           
           // Send a keepalive every 30 seconds
           const interval = setInterval(() => {
@@ -807,9 +808,9 @@ export default {
           });
         }
         
+        // Don't initialize agent until needed to avoid timeout
         const agent = new BurnsLegalMCP();
         agent.env = env;
-        await agent.init();
         
         // Handle initialize method
         if (body.method === "initialize") {
@@ -889,6 +890,7 @@ export default {
         
         // Handle tools/list
         if (body.method === "tools/list") {
+          await agent.init();  // Initialize when needed
           const tools = [
             {
               name: "search_legal_documents",
