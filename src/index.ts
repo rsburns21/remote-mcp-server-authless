@@ -718,7 +718,7 @@ export default {
       return new Response(JSON.stringify({
         status: "healthy",
         service: "burns-legal-mcp",
-        version: "2.0.0",
+        version: "2.0.1",
         timestamp: new Date().toISOString(),
         tools: 6,
         transport: ["http", "sse"],
