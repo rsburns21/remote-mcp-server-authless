@@ -3,7 +3,8 @@ import { z } from "zod";
 
 interface Env {
   SUPABASE_URL: string;
-  SUPABASE_SERVICE_ROLE_KEY: string;
+  SUPABASE_SERVICE_ROLE_KEY?: string;
+  SUPABASE_ANON_KEY?: string;
   OPENAI_API_KEY?: string;
 }
 
@@ -384,7 +385,7 @@ export class BurnsLegalMCP {
   async searchLegalDocuments({ query, limit = 10 }) {
     const env = this.env as Env;
     const supabaseUrl = env.SUPABASE_URL || "https://nqkzqcsqfvpquticvwmk.supabase.co";
-    const supabaseKey = env.SUPABASE_SERVICE_ROLE_KEY;
+    const supabaseKey = env.SUPABASE_SERVICE_ROLE_KEY || env.SUPABASE_ANON_KEY;
     
     if (!supabaseKey) {
       return {
@@ -460,7 +461,7 @@ export class BurnsLegalMCP {
   async vectorSearchEmbeddings({ query, limit = 20, threshold = 0.7 }) {
     const env = this.env as Env;
     const supabaseUrl = env.SUPABASE_URL || "https://nqkzqcsqfvpquticvwmk.supabase.co";
-    const supabaseKey = env.SUPABASE_SERVICE_ROLE_KEY;
+    const supabaseKey = env.SUPABASE_SERVICE_ROLE_KEY || env.SUPABASE_ANON_KEY;
     
     try {
       const response = await fetch(
@@ -507,7 +508,7 @@ export class BurnsLegalMCP {
   async fetchExhibit({ id }) {
     const env = this.env as Env;
     const supabaseUrl = env.SUPABASE_URL || "https://nqkzqcsqfvpquticvwmk.supabase.co";
-    const supabaseKey = env.SUPABASE_SERVICE_ROLE_KEY;
+    const supabaseKey = env.SUPABASE_SERVICE_ROLE_KEY || env.SUPABASE_ANON_KEY;
     
     try {
       const response = await fetch(
@@ -544,7 +545,7 @@ export class BurnsLegalMCP {
   async fetchClaim({ claim_id, include = [] }) {
     const env = this.env as Env;
     const supabaseUrl = env.SUPABASE_URL || "https://nqkzqcsqfvpquticvwmk.supabase.co";
-    const supabaseKey = env.SUPABASE_SERVICE_ROLE_KEY;
+    const supabaseKey = env.SUPABASE_SERVICE_ROLE_KEY || env.SUPABASE_ANON_KEY;
     
     try {
       const response = await fetch(
@@ -599,7 +600,7 @@ export class BurnsLegalMCP {
   async getFactsByClaim({ claim_id, fact_type, includeMetadata = false }) {
     const env = this.env as Env;
     const supabaseUrl = env.SUPABASE_URL || "https://nqkzqcsqfvpquticvwmk.supabase.co";
-    const supabaseKey = env.SUPABASE_SERVICE_ROLE_KEY;
+    const supabaseKey = env.SUPABASE_SERVICE_ROLE_KEY || env.SUPABASE_ANON_KEY;
     
     try {
       let query = `${supabaseUrl}/rest/v1/facts?claim_id=eq.${claim_id}`;
@@ -640,7 +641,7 @@ export class BurnsLegalMCP {
   async analyzeClaimRisk({ claim_id }) {
     const env = this.env as Env;
     const supabaseUrl = env.SUPABASE_URL || "https://nqkzqcsqfvpquticvwmk.supabase.co";
-    const supabaseKey = env.SUPABASE_SERVICE_ROLE_KEY;
+    const supabaseKey = env.SUPABASE_SERVICE_ROLE_KEY || env.SUPABASE_ANON_KEY;
     
     try {
       const response = await fetch(
@@ -701,7 +702,8 @@ export default {
     const corsHeaders = {
       "Access-Control-Allow-Origin": "*",
       "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-      "Access-Control-Allow-Headers": "Content-Type, Accept, Authorization, X-Request-Id",
+      "Access-Control-Allow-Headers": "Content-Type, Accept, Authorization, X-Request-Id, Mcp-Session-Id",
+      "Access-Control-Allow-Credentials": "true",
       "Access-Control-Max-Age": "86400",
     };
 
@@ -738,14 +740,44 @@ export default {
       });
     }
 
-    // SSE endpoint (not implemented yet)
-    if (url.pathname === "/sse" || url.pathname === "/sse/message") {
-      return new Response(JSON.stringify({
-        error: "SSE endpoint not yet implemented"
-      }), {
-        status: 501,
+    // SSE endpoint for MCP
+    if (url.pathname === "/sse" || url.pathname === "/mcp" && request.headers.get("accept")?.includes("text/event-stream")) {
+      // Create SSE response
+      const { readable, writable } = new TransformStream();
+      const writer = writable.getWriter();
+      const encoder = new TextEncoder();
+      
+      // Send initial SSE connection
+      writer.write(encoder.encode(":ok\n\n"));
+      
+      // Handle SSE messages
+      ctx.waitUntil((async () => {
+        try {
+          const agent = new BurnsLegalMCP();
+          agent.env = env;
+          await agent.init();
+          
+          // Send a keepalive every 30 seconds
+          const interval = setInterval(() => {
+            writer.write(encoder.encode(":keepalive\n\n"));
+          }, 30000);
+          
+          // Clean up on disconnect
+          setTimeout(() => {
+            clearInterval(interval);
+            writer.close();
+          }, 300000); // 5 minute timeout
+        } catch (error) {
+          console.error("SSE error:", error);
+          writer.close();
+        }
+      })());
+      
+      return new Response(readable, {
         headers: {
-          "Content-Type": "application/json",
+          "Content-Type": "text/event-stream",
+          "Cache-Control": "no-cache",
+          "Connection": "keep-alive",
           ...corsHeaders
         }
       });
