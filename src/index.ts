@@ -720,23 +720,68 @@ export default {
 
     // Health check
     if (url.pathname === "/health") {
+      // Test Supabase connection
+      let supabaseTest = { status: "not_tested", tables: null };
+      const supabaseUrl = env.SUPABASE_URL || "https://nqkzqcsqfvpquticvwmk.supabase.co";
+      const supabaseKey = env.SUPABASE_SERVICE_ROLE_KEY || env.SUPABASE_ANON_KEY;
+      
+      if (supabaseKey) {
+        try {
+          // Test connection by listing exhibits (limit 1)
+          const response = await fetch(
+            `${supabaseUrl}/rest/v1/exhibits?limit=1`,
+            {
+              headers: {
+                "apikey": supabaseKey,
+                "Authorization": `Bearer ${supabaseKey}`
+              }
+            }
+          );
+          
+          if (response.ok) {
+            const data = await response.json();
+            supabaseTest = {
+              status: "connected",
+              tables: {
+                exhibits: data.length > 0 ? "has_data" : "empty"
+              }
+            };
+          } else {
+            supabaseTest = {
+              status: "error",
+              error: `HTTP ${response.status}`,
+              tables: null
+            };
+          }
+        } catch (error) {
+          supabaseTest = {
+            status: "error",
+            error: error.message,
+            tables: null
+          };
+        }
+      }
+      
       return new Response(JSON.stringify({
         status: "healthy",
         service: "burns-legal-mcp",
-        version: "2.0.2",
+        version: "2.0.3",
         timestamp: new Date().toISOString(),
         tools: 6,
         transport: ["http", "sse"],
         endpoints: {
           mcp: "/mcp",
           sse: "/sse",
-          health: "/health"
+          health: "/health",
+          test: "/test"
         },
         environment: {
           supabase_configured: !!(env.SUPABASE_URL && (env.SUPABASE_SERVICE_ROLE_KEY || env.SUPABASE_ANON_KEY)),
           has_service_key: !!env.SUPABASE_SERVICE_ROLE_KEY,
-          has_anon_key: !!env.SUPABASE_ANON_KEY
-        }
+          has_anon_key: !!env.SUPABASE_ANON_KEY,
+          supabase_url: supabaseUrl
+        },
+        supabase_test: supabaseTest
       }), {
         headers: {
           "Content-Type": "application/json",
@@ -745,6 +790,106 @@ export default {
       });
     }
 
+    // Test endpoint for debugging
+    if (url.pathname === "/test") {
+      const supabaseUrl = env.SUPABASE_URL || "https://nqkzqcsqfvpquticvwmk.supabase.co";
+      const supabaseKey = env.SUPABASE_SERVICE_ROLE_KEY || env.SUPABASE_ANON_KEY;
+      
+      const tests = {};
+      
+      // Test 1: List tables
+      try {
+        const response = await fetch(
+          `${supabaseUrl}/rest/v1/`,
+          {
+            headers: {
+              "apikey": supabaseKey,
+              "Authorization": `Bearer ${supabaseKey}`
+            }
+          }
+        );
+        tests.tables = response.ok ? "accessible" : `error ${response.status}`;
+      } catch (e) {
+        tests.tables = e.message;
+      }
+      
+      // Test 2: Query exhibits
+      try {
+        const response = await fetch(
+          `${supabaseUrl}/rest/v1/exhibits?select=*&limit=1`,
+          {
+            headers: {
+              "apikey": supabaseKey,
+              "Authorization": `Bearer ${supabaseKey}`
+            }
+          }
+        );
+        if (response.ok) {
+          const data = await response.json();
+          tests.exhibits = { count: data.length, sample: data[0] };
+        } else {
+          tests.exhibits = `error ${response.status}: ${await response.text()}`;
+        }
+      } catch (e) {
+        tests.exhibits = e.message;
+      }
+      
+      // Test 3: Query claims
+      try {
+        const response = await fetch(
+          `${supabaseUrl}/rest/v1/claims?select=*&limit=1`,
+          {
+            headers: {
+              "apikey": supabaseKey,
+              "Authorization": `Bearer ${supabaseKey}`
+            }
+          }
+        );
+        if (response.ok) {
+          const data = await response.json();
+          tests.claims = { count: data.length, sample: data[0] };
+        } else {
+          tests.claims = `error ${response.status}: ${await response.text()}`;
+        }
+      } catch (e) {
+        tests.claims = e.message;
+      }
+      
+      // Test 4: Check RPC functions
+      try {
+        const response = await fetch(
+          `${supabaseUrl}/rest/v1/rpc/semantic_exhibit_search`,
+          {
+            method: "POST",
+            headers: {
+              "apikey": supabaseKey,
+              "Authorization": `Bearer ${supabaseKey}`,
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+              search_query: "test",
+              limit_count: 1
+            })
+          }
+        );
+        tests.semantic_search = response.ok ? "available" : `error ${response.status}: ${await response.text()}`;
+      } catch (e) {
+        tests.semantic_search = e.message;
+      }
+      
+      return new Response(JSON.stringify({
+        supabase_url: supabaseUrl,
+        has_key: !!supabaseKey,
+        key_type: env.SUPABASE_SERVICE_ROLE_KEY ? "service" : "anon",
+        tests
+      }, null, 2), {
+        headers: {
+          "Content-Type": "application/json",
+          ...corsHeaders
+        }
+      });
+    }
+    
     // SSE endpoint for MCP
     if (url.pathname === "/sse" || url.pathname === "/mcp" && request.headers.get("accept")?.includes("text/event-stream")) {
       // Create SSE response
