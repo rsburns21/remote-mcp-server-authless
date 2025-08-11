@@ -1,0 +1,19 @@
+name = "burns-legal-mcp-authless"
+main = "src/index.ts"
+compatibility_date = "2024-12-16"
+compatibility_flags = ["nodejs_compat"]
+
+[vars]
+SUPABASE_URL = "https://nqkzqcsqfvpquticvwmk.supabase.co"
+
+# These will be set as secrets via wrangler secret put
+# SUPABASE_SERVICE_ROLE_KEY
+# OPENAI_API_KEY (optional)
+
+[[durable_objects.bindings]]
+name = "MCP_OBJECT"
+class_name = "BurnsLegalMCP"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["BurnsLegalMCP"]

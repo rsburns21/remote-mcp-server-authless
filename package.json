@@ -1,13 +1,17 @@
 {
-	"name": "remote-mcp-server-authless",
-	"version": "0.0.0",
+	"name": "burns-legal-enhanced-mcp",
+	"version": "1.0.0",
 	"private": true,
 	"scripts": {
 		"deploy": "wrangler deploy",
+		"deploy:enhanced": "wrangler deploy -c wrangler.enhanced.toml",
 		"dev": "wrangler dev",
+		"dev:enhanced": "wrangler dev -c wrangler.enhanced.toml",
+		"build": "tsc",
 		"format": "biome format --write",
 		"lint:fix": "biome lint --fix",
 		"start": "wrangler dev",
+		"tail": "wrangler tail burns-legal-enhanced-authless",
 		"cf-typegen": "wrangler types",
 		"type-check": "tsc --noEmit"
 	},
