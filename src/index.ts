@@ -1,3 +1,4 @@
+import { DurableObject } from "@cloudflare/workers-types";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 
@@ -697,6 +698,43 @@ export { BurnsLegalMCP as MyMCP };
 export { BurnsLegalMCP as BurnsLegalEnhancedComplete };
 export { BurnsLegalMCP as BurnsLegalEnhancedMCP };
 
+
+// Durable Object for session management
+export class MyMCP extends DurableObject {
+  sessions: Map<string, any>;
+  
+  constructor(state: DurableObjectState, env: any) {
+    super(state, env);
+    this.sessions = new Map();
+  }
+  
+  async fetch(request: Request): Promise<Response> {
+    const url = new URL(request.url);
+    const sessionId = url.searchParams.get("session");
+    
+    if (request.method === "GET") {
+      const session = this.sessions.get(sessionId || "");
+      return new Response(JSON.stringify(session || {}), {
+        headers: { "Content-Type": "application/json" }
+      });
+    }
+    
+    if (request.method === "POST") {
+      const data = await request.json();
+      if (sessionId) {
+        this.sessions.set(sessionId, data);
+        // Auto-expire after 1 hour
+        setTimeout(() => this.sessions.delete(sessionId), 3600000);
+      }
+      return new Response(JSON.stringify({ stored: true }), {
+        headers: { "Content-Type": "application/json" }
+      });
+    }
+    
+    return new Response("Not found", { status: 404 });
+  }
+}
+
 export default {
   async fetch(request: Request, env: Env, ctx: ExecutionContext) {
     const url = new URL(request.url);
@@ -932,7 +970,7 @@ export default {
     }
 
     // MCP endpoint - handle JSON-RPC
-    if (url.pathname === "/mcp") {
+        if (url.pathname === "/mcp") {
       try {
         let body;
         try {
@@ -953,12 +991,31 @@ export default {
           });
         }
         
-        // Don't initialize agent until needed to avoid timeout
-        const agent = new BurnsLegalMCP();
-        agent.env = env;
+        // Session management with Durable Objects
+        let sessionId = request.headers.get("Mcp-Session-Id");
+        let durableObjectId = null;
+        
+        if (sessionId) {
+          // Use existing session
+          durableObjectId = env.MCP_OBJECT.idFromName(sessionId);
+        }
         
         // Handle initialize method
         if (body.method === "initialize") {
+          // Create new session with Durable Object
+          sessionId = crypto.randomUUID();
+          durableObjectId = env.MCP_OBJECT.idFromName(sessionId);
+          const stub = env.MCP_OBJECT.get(durableObjectId);
+          
+          // Store initial session data
+          await stub.fetch(new Request(`http://do/session?session=${sessionId}`, {
+            method: "POST",
+            body: JSON.stringify({
+              initialized: new Date().toISOString(),
+              protocolVersion: body.params?.protocolVersion || "2024-11-05"
+            })
+          }));
+          
           return new Response(JSON.stringify({
             jsonrpc: "2.0",
             id: body.id,
@@ -975,10 +1032,34 @@ export default {
           }), {
             headers: {
               "Content-Type": "application/json",
+              "Mcp-Session-Id": sessionId,
+              "Access-Control-Expose-Headers": "Mcp-Session-Id, Content-Type",
               ...corsHeaders
             }
           });
         }
+        
+        // Validate session exists for other methods
+        if (!sessionId && body.method !== "initialize") {
+          return new Response(JSON.stringify({
+            jsonrpc: "2.0",
+            id: body.id,
+            error: {
+              code: -32002,
+              message: "Session required - call initialize first"
+            }
+          }), {
+            status: 401,
+            headers: {
+              "Content-Type": "application/json",
+              ...corsHeaders
+            }
+          });
+        }
+        
+        // Initialize agent
+        const agent = new BurnsLegalMCP();
+        agent.env = env;
         
         // Handle JSON-RPC request
         if (body.method === "tools/call") {
