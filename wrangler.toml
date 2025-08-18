@@ -14,6 +14,4 @@ MCP_SERVER_NAME = "burns-legal-mcp"
 name = "MCP_OBJECT"
 class_name = "MyMCP"
 
-[[migrations]]
-tag = "v4"
-new_sqlite_classes = ["MyMCP"]
+# Migration already applied - MyMCP exists
