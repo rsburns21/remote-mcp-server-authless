@@ -1,4 +1,4 @@
-import { DurableObject } from "@cloudflare/workers-types";
+// DurableObject is available globally in Cloudflare Workers
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 
@@ -699,11 +699,14 @@ export { BurnsLegalMCP as BurnsLegalEnhancedMCP };
 
 
 // Durable Object for session management
-export class MyMCP extends DurableObject {
+export class MyMCP {
+  state: DurableObjectState;
+  env: any;
   sessions: Map<string, any>;
   
   constructor(state: DurableObjectState, env: any) {
-    super(state, env);
+    this.state = state;
+    this.env = env;
     this.sessions = new Map();
   }
   
