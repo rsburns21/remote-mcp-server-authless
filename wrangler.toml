@@ -16,4 +16,4 @@ class_name = "MyMCP"
 
 [[migrations]]
 tag = "v4"
-new_classes = ["MyMCP"]
+new_sqlite_classes = ["MyMCP"]
