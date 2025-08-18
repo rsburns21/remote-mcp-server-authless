@@ -691,8 +691,7 @@ export class BurnsLegalMCP {
   }
 }
 
-// Also export as MyMCP for backwards compatibility
-export { BurnsLegalMCP as MyMCP };
+// MyMCP is now defined as a Durable Object below
 
 // Export old class names for migration compatibility
 export { BurnsLegalMCP as BurnsLegalEnhancedComplete };
