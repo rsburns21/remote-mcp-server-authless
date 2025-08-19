@@ -1,0 +1,25 @@
+name = "burns-legal-enhanced-authless"
+main = "burns-legal-enhanced-fixed.js"
+compatibility_date = "2024-11-02"
+node_compat = true
+
+[vars]
+SUPABASE_URL = "https://nqkzqcsqfvpquticvwmk.supabase.co"
+SUPABASE_FUNCTION_URL = "https://nqkzqcsqfvpquticvwmk.functions.supabase.co"
+EDGE_FUNCTION_PATH = "/advanced-semantic-search"
+REST_URL = "https://nqkzqcsqfvpquticvwmk.supabase.co/rest/v1"
+SEARCH_MODE = "hybrid"
+SEARCH_TOP_K = "8"
+SEARCH_MIN_SCORE = "0.35"
+CACHE_TTL_SEC = "60"
+TIMEOUT_MS = "12000"
+LOG_LEVEL = "info"
+ENABLE_DEBUG_HEADERS = "false"
+CORS_ALLOWED_ORIGINS = "*"
+
+[env.production.vars]
+LOG_LEVEL = "warn"
+SEARCH_MIN_SCORE = "0.40"
+ENABLE_DEBUG_HEADERS = "false"
+
+

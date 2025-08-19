@@ -744,3 +744,5 @@ function rpcOk(id: any, result: unknown, sessionId?: string) {
 function rpcError(id: any, code: number, message: string, sessionId?: string) { 
   return json({ jsonrpc: "2.0", id, error: { code, message } }, 200, sessionId); 
 }
+// Export for backward compatibility with existing Durable Objects
+export class MyMCP extends BurnsLegalEnhancedMCP {}
