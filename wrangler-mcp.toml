@@ -1,5 +1,5 @@
 name = "burns-legal-mcp-202508182039"
-main = "burns-legal-mcp-202508182039.js"
+main = "mcp-wrapper.js"
 compatibility_date = "2024-11-02"
 node_compat = true
 
