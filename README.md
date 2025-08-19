@@ -1,4 +1,5 @@
 # Building a Remote MCP Server on Cloudflare (Without Auth)
+<!-- Deployment Test: 2025-08-19 03:53 UTC -->
 
 This example allows you to deploy a remote MCP server that doesn't require authentication on Cloudflare Workers. 
 
