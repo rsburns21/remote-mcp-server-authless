@@ -22,8 +22,8 @@ jobs:
 
       - name: Seed production secret(s)
         run: |
-          echo -n "$SUPABASE_SERVICE_ROLE_KEY" | wrangler secret put SUPABASE_SERVICE_ROLE_KEY --env production --yes -c wrangler-mcp.toml
-          echo -n "$SUPABASE_SERVICE_ROLE_KEY" | wrangler secret put SUPABASE_SERVICE_ROLE_KEY --env production --yes -c wrangler-search.toml
+          echo -n "$SUPABASE_SERVICE_ROLE_KEY" | wrangler secret put SUPABASE_SERVICE_ROLE_KEY --env production -c wrangler-mcp.toml
+          echo -n "$SUPABASE_SERVICE_ROLE_KEY" | wrangler secret put SUPABASE_SERVICE_ROLE_KEY --env production -c wrangler-search.toml
 
       - name: Deploy MCP worker
         run: wrangler deploy --env production -c wrangler-mcp.toml --minify
