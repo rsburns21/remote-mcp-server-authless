@@ -21,7 +21,10 @@ jobs:
         run: npm i -g wrangler@3
 
       - name: Seed production secret(s)
+        env:
+          CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
         run: |
+          if [ -n "$CF_API_TOKEN" ]; then export CLOUDFLARE_API_TOKEN="$CF_API_TOKEN"; fi
           echo -n "$SUPABASE_SERVICE_ROLE_KEY" | wrangler secret put SUPABASE_SERVICE_ROLE_KEY --env production -c wrangler-mcp.toml
           echo -n "$SUPABASE_SERVICE_ROLE_KEY" | wrangler secret put SUPABASE_SERVICE_ROLE_KEY --env production -c wrangler-search.toml
 

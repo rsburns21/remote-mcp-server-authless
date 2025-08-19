@@ -10,4 +10,6 @@ EDGE_FUNCTION_PATH = "/advanced-semantic-search"
 ENABLE_DEBUG_HEADERS = "false"
 CORS_ALLOWED_ORIGINS = "*"
 
+[env.production]
+
 

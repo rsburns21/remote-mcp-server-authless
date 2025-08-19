@@ -22,4 +22,6 @@ LOG_LEVEL = "warn"
 SEARCH_MIN_SCORE = "0.40"
 ENABLE_DEBUG_HEADERS = "false"
 
+[env.production]
+
 
