@@ -9,7 +9,7 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     env:
-      CLOUDFLARE_API_TOKEN: ${{ secrets.CF_API_TOKEN || secrets.CLOUDFLARE_API_KEY }}
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN || secrets.CF_API_TOKEN || secrets.CLOUDFLARE_API_KEY }}
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
       SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
     steps:
@@ -21,10 +21,7 @@ jobs:
         run: npm i -g wrangler@3
 
       - name: Seed production secret(s)
-        env:
-          CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
         run: |
-          if [ -n "$CF_API_TOKEN" ]; then export CLOUDFLARE_API_TOKEN="$CF_API_TOKEN"; fi
           echo -n "$SUPABASE_SERVICE_ROLE_KEY" | wrangler secret put SUPABASE_SERVICE_ROLE_KEY --env production -c wrangler-mcp.toml
           echo -n "$SUPABASE_SERVICE_ROLE_KEY" | wrangler secret put SUPABASE_SERVICE_ROLE_KEY --env production -c wrangler-search.toml
 
