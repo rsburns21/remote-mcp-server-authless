@@ -1,102 +1,56 @@
-name: Deploy Burns Legal Enhanced MCP
+name: Deploy Workers
 
 on:
-  push:
-    branches: [main]
-    tags:
-      - 'v*'
   workflow_dispatch:
-    inputs:
-      environment:
-        description: 'Deployment environment'
-        required: true
-        default: 'production'
-        type: choice
-        options:
-          - production
-          - staging
-          - development
+  push:
+    branches: [ main ]
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    name: Deploy to Cloudflare Workers
-    
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
     steps:
       - uses: actions/checkout@v4
-      
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          
-      - name: Install dependencies
-        run: npm ci
-        
-      # Skip TypeScript build - Cloudflare handles compilation
-      # - name: Build TypeScript
-      #   run: npm run build
-        
-      - name: Deploy to Cloudflare
+
+      - name: Deploy MCP worker (token+account)
         uses: cloudflare/wrangler-action@v3
-        env:
-          CLOUDFLARE_API_KEY: ${{ secrets.CLOUDFLARE_API_KEY }}
-          CLOUDFLARE_EMAIL: ${{ secrets.CLOUDFLARE_EMAIL }}
-          CLOUDFLARE_WORKER_NAME: burns-legal-enhanced-authless
         with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           wranglerVersion: '3.80.5'
-          apiToken: false
-          command: deploy --config wrangler.toml --name burns-legal-enhanced-authless
-      
-      - name: Set Worker Secrets
-        if: success()
+          command: secret put SUPABASE_SERVICE_ROLE_KEY -c wrangler-mcp.toml <<<"${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}"
+
+      - name: Deploy MCP worker
         uses: cloudflare/wrangler-action@v3
-        env:
-          CLOUDFLARE_API_KEY: ${{ secrets.CLOUDFLARE_API_KEY }}
-          CLOUDFLARE_EMAIL: ${{ secrets.CLOUDFLARE_EMAIL }}
-          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
         with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           wranglerVersion: '3.80.5'
-          apiToken: false
-          command: secret put SUPABASE_SERVICE_ROLE_KEY --config wrangler.toml
-          secrets: |
-            SUPABASE_SERVICE_ROLE_KEY
-          
-      - name: Create deployment record
-        if: success()
-        uses: actions/github-script@v7
+          command: deploy -c wrangler-mcp.toml
+
+      - name: Deploy Search worker (token+account)
+        uses: cloudflare/wrangler-action@v3
         with:
-          script: |
-            const deployment = await github.rest.repos.createDeployment({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              ref: context.ref,
-              environment: '${{ inputs.environment || 'production' }}',
-              production_environment: '${{ inputs.environment == 'production' }}',
-              description: 'Burns Legal Enhanced MCP v1.0',
-              required_contexts: [],
-              auto_merge: false
-            });
-            
-            await github.rest.repos.createDeploymentStatus({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              deployment_id: deployment.data.id,
-              state: 'success',
-              environment_url: 'https://burns-legal-enhanced-authless.rburns-fresno.workers.dev',
-              description: 'Deployment successful'
-            });
-            
-      - name: Test deployment
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          wranglerVersion: '3.80.5'
+          command: secret put SUPABASE_SERVICE_ROLE_KEY -c wrangler-search.toml <<<"${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}"
+
+      - name: Deploy Search worker
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          wranglerVersion: '3.80.5'
+          command: deploy -c wrangler-search.toml
+
+      - name: Smoke test MCP /healthz
         run: |
-          sleep 10
-          curl -f https://burns-legal-enhanced-authless.rburns-fresno.workers.dev/health || exit 1
-          
-      - name: Tag stable release
-        if: github.ref == 'refs/heads/main' && success()
+          curl -sS https://burns-legal-mcp-202508182039.rburns-fresno.workers.dev/healthz || true
+
+      - name: Smoke test Search /healthz
         run: |
-          git config user.name github-actions
-          git config user.email github-actions@github.com
-          TIMESTAMP=$(date +%Y%m%d-%H%M%S)
-          git tag -a "deploy-$TIMESTAMP" -m "Automated deployment at $TIMESTAMP"
-          git push origin "deploy-$TIMESTAMP"
+          curl -sS https://burns-legal-enhanced-authless.rburns-fresno.workers.dev/healthz || true
